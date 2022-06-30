@@ -54,7 +54,7 @@ void Field::HandleFixups()
 	for (auto& result : patternResults)
 	{
 		result += uintptr_t(offset);
-		if (bInterpret) if (!HandleInterpret(result)) std::cout << "Unable to Handle 0x" << std::hex << result << " Interpretation\n";
+		if (bInterpret) if (!HandleInterpret(result)) std::cout << "Unable to Handle "<< name <<" 0x" << std::hex << result << " Interpretation\n";
 	}
 
 	RemoveDuplicates(patternResults);

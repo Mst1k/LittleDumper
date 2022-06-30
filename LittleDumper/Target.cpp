@@ -8,6 +8,7 @@
 #include "PatternEngine.h"
 #include "AbiTarget.h"
 #include "HPPManager.h"
+#include <iostream>
 
 Target::Target(AbiTarget* _pOwner, const Json::Value& targetRoot)
 	: pParent(_pOwner)
@@ -33,6 +34,8 @@ Target::~Target()
 
 void Target::FindPatterns()
 {
+	std::cout << "Finding Patterns for " << name << std::endl;
+
 	std::vector<std::vector<unsigned char>> inputsPatterns;
 	std::vector<std::vector<uintptr_t>*> outputVecs;
 

@@ -39,15 +39,28 @@ bool CapstoneARMTool::InterpretInst(const unsigned char* pFileInMemEntry, cs_ins
     {
 
     case ARM_INS_LDR:
+    case ARM_INS_LDRD:
+    case ARM_INS_LDRB:
+    case ARM_INS_LDRBT:
+    case ARM_INS_LDREXB:
     {
         if (ArmCapstoneHelper::GetRValueRegType(pInst) == ARM_REG_PC) return TryInterpretPCRelative(pFileInMemEntry, pInst, outDisp);
         else outDisp = pInst->detail->arm.operands[pInst->detail->arm.op_count].mem.disp;
     } break;
 
     case ARM_INS_STR:
+    case ARM_INS_STRB:
+    case ARM_INS_STRD:
+    case ARM_INS_STRBT:
+    case ARM_INS_STREXB:
     {
         outDisp = pInst->detail->arm.operands[pInst->detail->arm.op_count].mem.disp;
     } break;
+
+    case ARM_INS_ADD:
+    {
+        outDisp = pInst->detail->arm.operands[pInst->detail->arm.op_count].mem.disp;
+    }break;
 
     default:
         return false;
@@ -58,24 +71,40 @@ bool CapstoneARMTool::InterpretInst(const unsigned char* pFileInMemEntry, cs_ins
 
 bool CapstoneARMTool::InterpretPCRelativeInst(const unsigned char* pFileInMemEntry, cs_insn* pInstBegin, cs_insn* pInstEnd, uintptr_t& outDisp)
 {
-    switch(pInstBegin->id) {
-    case ARM_INS_LDR:
-    {
-        uint16_t regPcRelOffHolderType = ArmCapstoneHelper::GetLValueRegType(pInstBegin);
-        uintptr_t targetPcRelOff = ArmCapstoneHelper::ResolvePCRelative((unsigned char*)pInstBegin->address, pInstBegin->detail->arm.operands[pInstBegin->detail->arm.op_count].mem.disp);
 
-        for (auto* pCurrInst = pInstBegin + 1; pCurrInst < pInstEnd; pCurrInst++)
+    uint16_t regPcRelOffHolderType = ArmCapstoneHelper::GetLValueRegType(pInstBegin);
+    uintptr_t targetPcRelOff = ArmCapstoneHelper::ResolvePCRelative((unsigned char*)pInstBegin->address, pInstBegin->detail->arm.operands[pInstBegin->detail->arm.op_count].mem.disp);
+
+    for (auto* pCurrInst = pInstBegin + 1; pCurrInst < pInstEnd; pCurrInst++)
+    {
+
+        switch(pCurrInst->id) {
+
+        case ARM_INS_LDR:
         {
-            if (pCurrInst->id == ARM_INS_LDR &&
-                pCurrInst->detail->arm.operands[1].mem.base == ARM_REG_PC && 
+            if (pCurrInst->detail->arm.operands[1].mem.base == ARM_REG_PC &&
                 pCurrInst->detail->arm.operands[1].mem.index == regPcRelOffHolderType)
             {
                 outDisp = (uintptr_t(pCurrInst->address) + 0x8 + targetPcRelOff) - uintptr_t(pFileInMemEntry);
                 return true;
             }
-        }
-    }break;
+        }break;
 
+        case ARM_INS_ADD:
+        {
+            if ((pCurrInst->detail->arm.operands[1].reg == ARM_REG_PC &&
+                pCurrInst->detail->arm.operands[2].reg == regPcRelOffHolderType) || 
+                (pCurrInst->detail->arm.operands[2].reg == ARM_REG_PC &&
+                    pCurrInst->detail->arm.operands[1].reg == regPcRelOffHolderType))
+            {
+                outDisp = (uintptr_t(pCurrInst->address) + 0x8 + targetPcRelOff) - uintptr_t(pFileInMemEntry);
+                return true;
+            }
+        }break;
+
+        }
+
+        
     }
 
     return false;
