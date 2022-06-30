@@ -39,10 +39,13 @@ void Target::FindPatterns()
 	std::vector<std::vector<unsigned char>> inputsPatterns;
 	std::vector<std::vector<uintptr_t>*> outputVecs;
 
-	for (const auto* pField : pDataSet->getAllFields())
+	for (auto* pField : pDataSet->getAllFields())
 	{
-		inputsPatterns.push_back(pField->pPattern->getBytes());
-		outputVecs.push_back((std::vector<uintptr_t>*)&(pField->patternResults));
+		if (pField->NeedFindPattern())
+		{
+			inputsPatterns.push_back(pField->pPattern->getBytes());
+			outputVecs.push_back((std::vector<uintptr_t>*) & (pField->patternResults));
+		}
 	}
 
 	PatternEngine::FindPatterns(pTargetFile, inputsPatterns, outputVecs);

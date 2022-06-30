@@ -16,6 +16,7 @@ Dataset::Dataset(Target* _pOwner)
 	{
 		try {
 			Field* pField = new Field(this, outJDataset[i]);
+			fieldsMap[pField->name] = pField;
 			fields.push_back(pField);
 		}
 		catch(const char* what) {
@@ -49,9 +50,10 @@ std::vector<Field*>& Dataset::getAllFields()
 void Dataset::HandleAllFixups()
 {
 	for (auto* pField : fields)
-	{
 		pField->HandleFixups();
-	}
+
+	for (auto* pField : fields)
+		pField->PostFixups();
 }
 
 Target* Dataset::getParent()
@@ -77,4 +79,12 @@ bool Dataset::NeedInterpreter()
 	}
 
 	return false;
+}
+
+Field* Dataset::getFieldByName(const std::string& name)
+{
+	if (fieldsMap.find(name) != fieldsMap.end())
+		return fieldsMap[name];
+
+	return nullptr;
 }

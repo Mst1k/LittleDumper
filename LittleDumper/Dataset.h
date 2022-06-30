@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 #include <json/json.h>
 
 struct Target;
@@ -11,6 +12,7 @@ class Dataset
 {
 private:
 	std::vector<Field*> fields;
+	std::unordered_map<std::string, Field*> fieldsMap;
 	Target* pOwner;
 	Json::Value outJDataset;
 public:
@@ -24,5 +26,6 @@ public:
 	void Render();
 	HeaderFileManager* getHeaderFileRender();
 	bool NeedInterpreter();
+	Field* getFieldByName(const std::string& name);
 };
 

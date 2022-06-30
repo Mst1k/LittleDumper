@@ -39,6 +39,7 @@ bool CapstoneARMTool::InterpretInst(const unsigned char* pFileInMemEntry, cs_ins
     {
 
     case ARM_INS_LDR:
+    case ARM_INS_LDRH:
     case ARM_INS_LDRD:
     case ARM_INS_LDRB:
     case ARM_INS_LDRBT:
@@ -49,12 +50,19 @@ bool CapstoneARMTool::InterpretInst(const unsigned char* pFileInMemEntry, cs_ins
     } break;
 
     case ARM_INS_STR:
+    case ARM_INS_STRH:
     case ARM_INS_STRB:
     case ARM_INS_STRD:
     case ARM_INS_STRBT:
     case ARM_INS_STREXB:
     {
         outDisp = pInst->detail->arm.operands[pInst->detail->arm.op_count].mem.disp;
+    } break;
+
+    case ARM_INS_VLDR:
+    case ARM_INS_VSTR:
+    {
+        outDisp = pInst->detail->arm.operands[pInst->detail->arm.op_count - 1].mem.disp;
     } break;
 
     case ARM_INS_ADD:
@@ -81,6 +89,7 @@ bool CapstoneARMTool::InterpretPCRelativeInst(const unsigned char* pFileInMemEnt
         switch(pCurrInst->id) {
 
         case ARM_INS_LDR:
+        case ARM_INS_STR:
         {
             if (pCurrInst->detail->arm.operands[1].mem.base == ARM_REG_PC &&
                 pCurrInst->detail->arm.operands[1].mem.index == regPcRelOffHolderType)
