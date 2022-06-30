@@ -59,7 +59,7 @@ bool CapstoneARMTool::InterpretInst(const unsigned char* pFileInMemEntry, cs_ins
 
     case ARM_INS_ADD:
     {
-        outDisp = pInst->detail->arm.operands[pInst->detail->arm.op_count].mem.disp;
+        outDisp = pInst->detail->arm.operands[pInst->detail->arm.op_count - 1].imm;
     }break;
 
     default:
