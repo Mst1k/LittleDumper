@@ -152,7 +152,51 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Dependencies\JSONCPP\dist\jsoncpp.cpp" />
+    <ClCompile Include="AbiTarget.cpp" />
+    <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="ByteHelper.cpp" />
+    <ClCompile Include="CapstoneHelper.cpp" />
+    <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="Dataset.cpp" />
+    <ClCompile Include="Field.cpp" />
+    <ClCompile Include="File.cpp" />
+    <ClCompile Include="FileHelper.cpp" />
+    <ClCompile Include="FilesEngine.cpp" />
+    <ClCompile Include="HPPManager.cpp" />
+    <ClCompile Include="ICapstoneTool.cpp" />
+    <ClCompile Include="JsonHelper.cpp" />
     <ClCompile Include="LittleDumper.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Pattern.cpp" />
+    <ClCompile Include="PatternByte.cpp" />
+    <ClCompile Include="PatternEngine.cpp" />
+    <ClCompile Include="StringHelper.cpp" />
+    <ClCompile Include="Target.cpp" />
+    <ClCompile Include="ABIManager.cpp" />
+    <ClCompile Include="VectorUtils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AbiTarget.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="ByteHelper.h" />
+    <ClInclude Include="CapstoneHelper.h" />
+    <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="Dataset.h" />
+    <ClInclude Include="Field.h" />
+    <ClInclude Include="File.h" />
+    <ClInclude Include="FileHelper.h" />
+    <ClInclude Include="FilesEngine.h" />
+    <ClInclude Include="HPPManager.h" />
+    <ClInclude Include="ICapstoneTool.h" />
+    <ClInclude Include="JsonHelper.h" />
+    <ClInclude Include="LittleDumper.h" />
+    <ClInclude Include="Pattern.h" />
+    <ClInclude Include="PatternByte.h" />
+    <ClInclude Include="PatternEngine.h" />
+    <ClInclude Include="StringHelper.h" />
+    <ClInclude Include="Target.h" />
+    <ClInclude Include="ABIManager.h" />
+    <ClInclude Include="VectorUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

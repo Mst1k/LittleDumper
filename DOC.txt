@@ -1,0 +1,116 @@
+to make this dump work, here is the structure:
+
+first you need to create a json file called "config.json" at the path where the dump exec live, this file will allow you to configure the next: 
+
+* the final resulting dump file name
+* the main namespace name
+* the input targets Abis json file path(it can be a name if the file live inside where the dump exec lives), ill explain in a minute
+
+ej:
+
+{
+	"dumpname" : "dumpname.hpp",
+	"namespacename" : "DumpNamespace",
+	"targetsabispath" : "abisTargets.json" // <-- this is important
+}
+
+lets take this dump example for a moment:
+
+" /***/
+#pragma once
+#include <cstdint>
+
+namespace DumpNamespace <--- "namespacename"
+{
+	// say you have a file XARM32.so,then
+	// Say you have a unique pattern for "helloCharOff"
+	// "DE AD BE EF ? C0 FF EE"
+	// That matches once in XARM32.so at offset 0x10
+
+	// Here start "ABITarget" for arm32
+
+	#ifdef ARM32 //<--- "macro"
+
+	namespace X{
+	 // this is how results will look like
+
+		constexpr uintptr_t helloCharOff = 0x10;
+	}
+
+
+	#endif
+
+	// the file name will be XARM64.so,then
+	// Say you also want to find the same "helloCharOff" at the same file but in 64bit format
+	// you have a unique pattern for also
+	// "C0 FF EE DE ? AD BE EF"
+	// That matches once in XARM64.so at offset 0x20
+
+
+	// Here start "ABITarget" for arm64
+
+	#ifdef ARM64 //<--- "macro"
+	// ARM64 offsets here
+
+	namespace X{
+	 // this is how results will look like
+
+		constexpr uintptr_t helloCharOff = 0x20;
+	}
+
+	#endif
+}
+" /***/
+
+to achive the same with this dumper you need to fill up 
+
+/*abisTargets.json*/
+
+{ // ABI Target
+	"arch" : "arm32"
+	"targets" : [
+		{ // Target for arm32
+			"name" : "X", //<-- this is how the namespace will be called
+			"path" : "XARM32.so",
+			"datasetpath" : "XARM32.json",
+
+		}, 
+		{ // Target for arm64
+			"name" : "X", //<-- this is how the namespace will be called
+			"path" : "XARM64.so",
+			"datasetpath" : "XARM64.json",
+		}
+	]
+}
+
+/**/
+
+/*XARM32.json*/
+[
+	{ // Field
+		"name" : "helloCharOff",  // <-- Name of the field
+	 	"pattern" : "DE AD BE EF ? C0 FF EE",
+	 	"options": { 
+	 		"offset": 0, // Fixed offset that will be added to all results(0 default)
+	 		"interpret" : false // Will Try to disassembly a instruction and 
+	 							//will try to extract the mem disp(arch must be defined in the parent abi target)
+	 							// True by default
+	 	}
+	}
+]
+/**/
+
+/*XARM64.json*/
+[
+	{ // Field
+		"name" : "helloCharOff",  // <-- Name of the field
+	 	"pattern" : "C0 FF EE DE ? AD BE EF",
+	 	"options": { 
+	 		"offset": 0, // Fixed offset that will be added to all results(0 default)
+	 		"interpret" : false // Will Try to disassembly a instruction and 
+	 							//will try to extract the mem disp(arch must be defined in the parent abi target)
+	 							// True by default
+	 	}
+	}
+]
+/**/
