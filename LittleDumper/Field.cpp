@@ -19,6 +19,8 @@ Field::Field(Dataset* pDataset, const Json::Value& fieldJsn)
 	if (JSON_ASSERT(fieldJsn, "name")) throw "Cant Find Field Name, Omitting Field";
 	name = fieldJsn["name"].asString();
 
+	comment = fieldJsn["comment"].asString();
+
 	offset = 0;
 	bInterpret = true;
 
@@ -131,7 +133,13 @@ void Field::Render()
 	HeaderFileManager* pHeaderRender = getHeaderFileRender();
 	size_t resultCnt = patternResults.size();
 
-	if (resultCnt == 1) pHeaderRender->AppendConstUintVar(name, patternResults[0]);
+	if (resultCnt == 1)
+	{
+		bool bAppendingComment = !comment.empty();
+
+		pHeaderRender->AppendConstUintVar(name, patternResults[0], !bAppendingComment);
+		if (bAppendingComment) pHeaderRender->AppendComment(comment);
+	}
 	else if (resultCnt > 1) std::cout << "Warning: " << name << " with " << resultCnt << std::endl;
 	else if(resultCnt < 1) std::cout << "Warning: " << name << " Not Found" << std::endl;
 

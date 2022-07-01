@@ -16,7 +16,8 @@ struct HeaderFileManager {
 	void AppendMacroIfDefined(const std::string& macroName, bool bTerminateLine = true);
 	void AppendTab();
 	void AppendTab(uintptr_t count);
-	void AppendConstUintVar(const std::string& name, uintptr_t value);
+	void AppendConstUintVar(const std::string& name, uintptr_t value, bool bJumpNewLine = true);
+	void AppendComment(const std::string& comment, bool bJumpNewLine = true);
 	void AppendNextLine();
 	void AppendGlobalInclude(const std::string& fileName);
 	void BeginNameSpace(const std::string& name);

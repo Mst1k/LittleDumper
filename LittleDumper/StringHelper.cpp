@@ -28,3 +28,13 @@ std::string StringHelper::Capitalize(const std::string& str)
 
     return result;
 }
+
+std::string StringHelper::Unify(const std::vector<std::string>& vecStrs)
+{
+    std::string result = "";
+
+    for (const std::string& currStr : vecStrs)
+        result += currStr;
+
+    return result;
+}

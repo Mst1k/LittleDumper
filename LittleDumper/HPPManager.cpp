@@ -1,4 +1,5 @@
 #include "HPPManager.h"
+#include "StringHelper.h"
 
 HeaderFileManager::HeaderFileManager(std::ofstream* traits) :
 	m_Traits(traits), m_TabLevel(0x0)
@@ -58,11 +59,16 @@ void HeaderFileManager::AppendTab(uintptr_t count)
 		AppendTab();
 }
 
-void HeaderFileManager::AppendConstUintVar(const std::string& name, uintptr_t value)
+void HeaderFileManager::AppendConstUintVar(const std::string& name, uintptr_t value, bool bJumpNewLine)
 {
 	std::ofstream& traits = *m_Traits;
 
-	AppendTab(m_TabLevel); traits << "constexpr uintptr_t " << name << " = 0x" << std::hex << value << ";" << std::endl;
+	AppendTab(m_TabLevel); traits << "constexpr uintptr_t " << name << " = 0x" << std::hex << value << ";"; if(bJumpNewLine) traits << std::endl;
+}
+
+void HeaderFileManager::AppendComment(const std::string& comment, bool bJumpNewLine)
+{
+	AppendString(" // " + StringHelper::Unify(StringHelper::Tokenize(comment, '\n'))); if (bJumpNewLine) AppendNextLine();
 }
 
 void HeaderFileManager::AppendNextLine()

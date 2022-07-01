@@ -26,6 +26,7 @@ struct Field
 	std::vector<uintptr_t> patternResults;
 	std::vector<std::string> toCombineFieldsNames;
 	FieldStatus fieldStatus;
+	std::string comment;
 
 	Field(Dataset* pDataset, const Json::Value& fieldJsn);
 	~Field();
