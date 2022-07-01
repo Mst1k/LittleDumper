@@ -17,20 +17,23 @@ public:
 	bool TryInterpretPCRelative(const unsigned char* pFileInMemEntry, cs_insn* pInst, uintptr_t& outDisp);
 	virtual bool InterpretInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, uintptr_t& outDisp) = 0;
 	virtual bool InterpretPCRelativeInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, cs_insn* pInstEnd, uintptr_t& outDisp) = 0;
+	virtual bool PCRelInstAddrRebaseRoot() = 0;
 };
 
 class CapstoneARMTool : public ICapstoneTool {
 public:
 	bool InterpretInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, uintptr_t& outDisp) override;
 	bool InterpretPCRelativeInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, cs_insn* pInstEnd, uintptr_t& outDisp) override;
+	bool PCRelInstAddrRebaseRoot() override { return false; };
 	CapstoneARMTool();
 	~CapstoneARMTool();
 };
 
 class CapstoneARM64Tool : public ICapstoneTool {
 public:
-	bool InterpretInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, uintptr_t& outDisp) override { return false; };
-	bool InterpretPCRelativeInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, cs_insn* pInstEnd, uintptr_t& outDisp) override { return false; };
+	bool InterpretInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, uintptr_t& outDisp) override;
+	bool InterpretPCRelativeInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, cs_insn* pInstEnd, uintptr_t& outDisp) override;
+	bool PCRelInstAddrRebaseRoot() override { return true; };
 	CapstoneARM64Tool();
 	~CapstoneARM64Tool();
 };

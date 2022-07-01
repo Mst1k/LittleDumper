@@ -24,7 +24,7 @@ bool ICapstoneTool::TryInterpretPCRelative(const unsigned char* pFileInMemEntry,
     uintptr_t count = 0;
     bool result = false;
 
-    if ((count = cs_disasm(GetCapstoneHandle(), (uint8_t*)pInst->address, 0x50, (uint64_t)(pInst->address), 0, &pDisasmdInst)) != 0 && pDisasmdInst)
+    if ((count = cs_disasm(GetCapstoneHandle(), (uint8_t*)pInst->address, 0x50, PCRelInstAddrRebaseRoot() ? (pInst->address - uintptr_t(pFileInMemEntry)) : pInst->address, 0, &pDisasmdInst)) != 0 && pDisasmdInst)
     {
         result = InterpretPCRelativeInst(pFileInMemEntry, pDisasmdInst, pDisasmdInst + count, outDisp);
         cs_free(pDisasmdInst, count);
@@ -151,6 +151,82 @@ ICapstoneTool::~ICapstoneTool()
 csh ICapstoneTool::GetCapstoneHandle()
 {
     return m_CapstoneDisasm;
+}
+
+bool CapstoneARM64Tool::InterpretInst(const unsigned char* pFileInMemEntry, cs_insn* pInst, uintptr_t& outDisp)
+{
+    switch(pInst->id) {
+
+    case ARM64_INS_LDR:
+    case ARM64_INS_LDRH:
+    case ARM64_INS_LDRB:
+    {
+        if (ArmCapstoneHelper::GetRValueRegType(pInst) == ARM_REG_PC) return false;
+        else outDisp = pInst->detail->arm64.operands[pInst->detail->arm64.op_count].mem.disp;
+    } break;
+
+    case ARM64_INS_STR:
+    case ARM64_INS_STRH:
+    case ARM64_INS_STRB:
+    {
+        outDisp = pInst->detail->arm64.operands[pInst->detail->arm64.op_count].mem.disp;
+    } break;
+
+    case ARM64_INS_ADD:
+    {
+        outDisp = uintptr_t(pInst->detail->arm64.operands[pInst->detail->arm64.op_count - 1].imm);
+    }break;
+
+    case ARM64_INS_LDP:
+    {
+        outDisp = uintptr_t(pInst->detail->arm64.operands[pInst->detail->arm64.op_count].mem.disp);
+    }break;
+
+    case ARM64_INS_ADRP:
+    {
+        return TryInterpretPCRelative(pFileInMemEntry, pInst, outDisp);
+    }break;
+
+    default:
+        return false;
+    }
+    
+    return true;
+}
+
+bool CapstoneARM64Tool::InterpretPCRelativeInst(const unsigned char* pFileInMemEntry, cs_insn* pInstBegin, cs_insn* pInstEnd, uintptr_t& outDisp)
+{
+    uint16_t adrpRegTargetType = Arm64CapstoneHelper::GetLValueRegType(pInstBegin);
+    uintptr_t pageEntry = uintptr_t(pInstBegin->detail->arm64.operands[pInstBegin->detail->arm64.op_count - 1].imm);
+
+    for (auto* pCurrInst = pInstBegin + 1; pCurrInst < pInstEnd; pCurrInst++)
+    {
+        switch (pCurrInst->id) {
+
+        case ARM64_INS_LDR:
+        case ARM64_INS_STR:
+        {
+            if (pCurrInst->detail->arm64.operands[1].mem.base == adrpRegTargetType)
+            {
+                intptr_t pageOffset = pCurrInst->detail->arm64.operands[pCurrInst->detail->arm64.op_count].mem.disp;
+                outDisp = uintptr_t(pageEntry + pageOffset);
+                return true;
+            }
+        }break;
+
+        case ARM64_INS_ADD:
+        {
+            if (pCurrInst->detail->arm64.operands[1].reg == adrpRegTargetType)
+            {
+                outDisp = (pageEntry + intptr_t(pCurrInst->detail->arm64.operands[2].imm));
+                return true;
+            }
+        }break;
+
+        }
+    }
+
+    return false;
 }
 
 CapstoneARM64Tool::CapstoneARM64Tool()

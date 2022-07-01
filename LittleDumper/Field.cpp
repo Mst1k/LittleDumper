@@ -115,7 +115,7 @@ void Field::PostFixups()
 					{
 						patternResults[0] += pCurrCombining->patternResults[0];
 					}
-					else std::cout << "Warning:" << combiningName << " is not unique Result" << std::endl;
+					else std::cout << "Warning: " << combiningName << " is not unique Result" << std::endl;
 				}
 				else std::cout << "Warning: " << combiningName << " is not Ready to be combined" << std::endl;
 			}
