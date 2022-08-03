@@ -9,6 +9,8 @@
 #include "AbiTarget.h"
 #include "HPPManager.h"
 #include <iostream>
+#include "StringHelper.h"
+
 
 Target::Target(AbiTarget* _pOwner, const Json::Value& targetRoot)
 	: pParent(_pOwner)
@@ -56,15 +58,35 @@ Dataset* Target::getDataset()
 	return pDataSet;
 }
 
-void Target::Render()
+void Target::RenderStatic()
 {
 	auto* pHeaderRender = getHeaderFileRender();
 
-	pHeaderRender->BeginNameSpace(name);
+	pHeaderRender->BeginStruct(name);
 
-	pDataSet->Render();
+	pDataSet->RenderStatic();
 
-	pHeaderRender->EndNameSpace(name);
+	pHeaderRender->EndStruct(name, {
+		StructDeclarationInfo("m" + StringHelper::Capitalize(name))
+		});
+}
+
+void Target::RenderDynamic()
+{
+	auto* pHeaderRender = getHeaderFileRender();
+
+	pHeaderRender->BeginStruct(name);
+
+	pDataSet->RenderDynamic();
+
+	pHeaderRender->EndStruct(name, {
+		StructDeclarationInfo("m" + StringHelper::Capitalize(name))
+		});
+}
+
+void Target::RenderDynamicAssigns(const std::string& jsonProviderParamName, bool bObfuscate)
+{
+	pDataSet->RenderDynamicAssigns(jsonProviderParamName, "m" + StringHelper::Capitalize(name), bObfuscate);
 }
 
 HeaderFileManager* Target::getHeaderFileRender()
@@ -75,4 +97,9 @@ HeaderFileManager* Target::getHeaderFileRender()
 AbiTarget* Target::getParent()
 {
 	return pParent;
+}
+
+JsonFileManager* Target::getJsonFileRender()
+{
+	return pParent->pJsonFileManager;
 }

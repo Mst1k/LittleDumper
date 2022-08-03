@@ -9,6 +9,9 @@
 #include "ICapstoneTool.h"
 #include "AbiTarget.h"
 #include "File.h"
+#include "StaticHasher.h"
+#include "JsonFileManager.h"
+#include "RandomHelper.h"
 
 Field::Field(Dataset* pDataset, const Json::Value& fieldJsn)
 	: pOwner(pDataset)
@@ -80,6 +83,11 @@ HeaderFileManager* Field::getHeaderFileRender()
 	return pOwner->getHeaderFileRender();
 }
 
+JsonFileManager* Field::getJsonFileRender()
+{
+	return pOwner->getJsonFileRender();
+}
+
 bool Field::NeedFindPattern()
 {
 	return pPattern != nullptr && fieldStatus != FIELD_ENDED_SUCESSFULL;
@@ -128,7 +136,7 @@ void Field::PostFixups()
 	fieldStatus = FIELD_ENDED_SUCESSFULL;
 }
 
-void Field::Render()
+void Field::RenderStatic()
 {
 	HeaderFileManager* pHeaderRender = getHeaderFileRender();
 	size_t resultCnt = patternResults.size();
@@ -137,11 +145,59 @@ void Field::Render()
 	{
 		bool bAppendingComment = !comment.empty();
 
-		pHeaderRender->AppendConstUintVar(name, patternResults[0], !bAppendingComment);
+		pHeaderRender->AppendUintVar(name, true ,true, patternResults[0], !bAppendingComment);
 		if (bAppendingComment) pHeaderRender->AppendComment(comment);
 	}
 	else if (resultCnt > 1) std::cout << "Warning: " << name << " with " << resultCnt << std::endl;
 	else if(resultCnt < 1) std::cout << "Warning: " << name << " Not Found" << std::endl;
+
+	fieldStatus = FIELD_ENDED_SUCESSFULL;
+}
+
+void Field::RenderDynamic()
+{
+	HeaderFileManager* pHeaderRender = getHeaderFileRender();
+	size_t resultCnt = patternResults.size();
+
+	if (resultCnt == 1)
+	{
+		bool bAppendingComment = !comment.empty();
+
+		pHeaderRender->AppendUintVar(name, true, false, 0, !bAppendingComment);
+		if (bAppendingComment) pHeaderRender->AppendComment(comment);
+	}
+	else if (resultCnt > 1) std::cout << "Warning: " << name << " with " << resultCnt << std::endl;
+	else if (resultCnt < 1) std::cout << "Warning: " << name << " Not Found" << std::endl;
+
+	fieldStatus = FIELD_ENDED_SUCESSFULL;
+}
+
+void Field::RenderDynamicAssign(const std::string& jsonProviderParamName, const std::string& targetMemberName, bool bObfuscate)
+{
+	HeaderFileManager* pHeaderRender = getHeaderFileRender();
+	JsonFileManager* pJsonFileManager = getJsonFileRender();
+	size_t resultCnt = patternResults.size();
+
+	uint32_t randVal = RandomHelper::getRandom();
+	std::string randValStr = std::to_string(randVal);
+	std::string fullLValue = targetMemberName + "." + name;
+	std::string fullLValueToHash = fullLValue + randValStr;
+	std::string fullLValueHashStr = std::to_string(detail::fnv1a_32(fullLValueToHash.c_str(), fullLValueToHash.size()));
+	std::string fullRValue = jsonProviderParamName + "[\"" + fullLValueHashStr + "\"].asUInt64()";
+
+	if (bObfuscate) fullRValue += " ^ " + randValStr;
+
+	fullRValue += ";";
+
+	if (resultCnt == 1)
+	{
+		pJsonFileManager->GetRoot()[fullLValueHashStr] = patternResults[0] ^ randVal;
+		pHeaderRender->AppendString(fullLValue + " = " + fullRValue); pHeaderRender->AppendNextLine();
+	}
+	else if (resultCnt > 1) std::cout << "Warning: " << name << " with " << resultCnt << std::endl;
+	else if (resultCnt < 1) std::cout << "Warning: " << name << " Not Found" << std::endl;
+
+	
 
 	fieldStatus = FIELD_ENDED_SUCESSFULL;
 }

@@ -9,6 +9,7 @@ class Dataset;
 struct File;
 struct AbiTarget;
 struct HeaderFileManager;
+struct JsonFileManager;
 
 struct Target
 {
@@ -25,8 +26,11 @@ struct Target
 
 	void FindPatterns();
 	Dataset* getDataset();
-	void Render();
+	void RenderStatic();
+	void RenderDynamic();
+	void RenderDynamicAssigns(const std::string& jsonProviderParamName, bool bObfuscate = false);
 	HeaderFileManager* getHeaderFileRender();
 	AbiTarget* getParent();
+	JsonFileManager* getJsonFileRender();
 };
 

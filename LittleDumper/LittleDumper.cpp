@@ -3,6 +3,16 @@
 #include "ABIManager.h"
 #include <iostream>
 #include "HPPManager.h"
+#ifdef _MSC_VER
+#include <Windows.h>
+#define GetTID() GetCurrentThreadId()
+#define __SLEEP(sec) Sleep(sec*1000)
+#elif __linux__ || ANDROID || __arm__
+#include <pthread.h>
+#include <unistd.h>
+#define GetTID() pthread_self()
+#define __SLEEP(sec) sleep(sec)
+#endif
 
 LittleDumper::LittleDumper()
 	: pConfigManager(nullptr)
@@ -12,12 +22,17 @@ LittleDumper::LittleDumper()
 
 LittleDumper::~LittleDumper()
 {
+	if (pAbiManager) delete pAbiManager;
+	if (pHeaderFileRender) delete pHeaderFileRender;
+	if (pOutputDump) delete pOutputDump;
 	if (pConfigManager) delete pConfigManager;
 }
 
 bool LittleDumper::Init()
 {
 	bool bOk = true;
+
+	srand((unsigned)time(NULL) * GetTID());
 
 	try {
 		pConfigManager = new ConfigManager();
@@ -37,7 +52,7 @@ bool LittleDumper::Init()
 void LittleDumper::Run()
 {
 	pAbiManager->Analyze();
-	pAbiManager->Render();
+	pAbiManager->RenderHPP(true);
 }
 
 ConfigManager* LittleDumper::getConfigManager()

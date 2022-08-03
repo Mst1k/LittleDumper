@@ -21,7 +21,7 @@ public:
 	const std::vector<AbiTarget*>& getAbiTargets();
 
 	void Analyze();
-	void Render();
+	void RenderHPP(bool bRenderDynamic = false);
 	HeaderFileManager* getHeaderFileRender();
 };
 

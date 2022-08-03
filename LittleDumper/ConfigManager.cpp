@@ -16,21 +16,21 @@ ConfigManager::ConfigManager(std::string configPath)
 	
 	if (bNamespacesNameExist && !bDumpNameExist)
 	{
-		namespaceName = configJson["namespacename"].asString();
-		dumpFileName = namespaceName + ".hpp";
+		StructName = configJson["structname"].asString();
+		dumpFileName = StructName + ".hpp";
 	}
 	else if (!bNamespacesNameExist && bDumpNameExist)
 	{
 		dumpFileName = configJson["dumpname"].asString();
 
 		if (dumpFileName.find(".hpp") != std::string::npos)
-			namespaceName = StringHelper::Capitalize(StringHelper::Tokenize(dumpFileName, '.')[0]);
+			StructName = StringHelper::Capitalize(StringHelper::Tokenize(dumpFileName, '.')[0]);
 		else 
-			namespaceName = StringHelper::Capitalize(dumpFileName);
+			StructName = StringHelper::Capitalize(dumpFileName);
 	}
 	else {
 		dumpFileName = configJson["dumpname"].asString();
-		namespaceName = configJson["namespacename"].asString();
+		StructName = configJson["structname"].asString();
 	}
 	
 }

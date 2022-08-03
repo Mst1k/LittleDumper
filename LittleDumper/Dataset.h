@@ -7,6 +7,7 @@
 struct Target;
 struct Field;
 struct HeaderFileManager;
+struct JsonFileManager;
 
 class Dataset
 {
@@ -23,9 +24,12 @@ public:
 	std::vector<Field*>& getAllFields();
 	void HandleAllFixups();
 	Target* getParent();
-	void Render();
+	void RenderStatic();
+	void RenderDynamic();
+	void RenderDynamicAssigns(const std::string& jsonProviderParamName, const std::string& targetMemberName, bool bObfuscate = false);
 	HeaderFileManager* getHeaderFileRender();
 	bool NeedInterpreter();
 	Field* getFieldByName(const std::string& name);
+	JsonFileManager* getJsonFileRender();
 };
 

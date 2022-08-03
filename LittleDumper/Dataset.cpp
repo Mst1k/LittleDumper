@@ -61,9 +61,19 @@ Target* Dataset::getParent()
 	return pOwner;
 }
 
-void Dataset::Render()
+void Dataset::RenderStatic()
 {
-	for (auto* pField : fields) pField->Render();
+	for (auto* pField : fields) pField->RenderStatic();
+}
+
+void Dataset::RenderDynamic()
+{
+	for (auto* pField : fields) pField->RenderDynamic();
+}
+
+void Dataset::RenderDynamicAssigns(const std::string& jsonProviderParamName, const std::string& targetMemberName, bool bObfuscate)
+{
+	for (auto* pField : fields) pField->RenderDynamicAssign(jsonProviderParamName, targetMemberName, bObfuscate);
 }
 
 HeaderFileManager* Dataset::getHeaderFileRender()
@@ -87,4 +97,9 @@ Field* Dataset::getFieldByName(const std::string& name)
 		return fieldsMap[name];
 
 	return nullptr;
+}
+
+JsonFileManager* Dataset::getJsonFileRender()
+{
+	return pOwner->getJsonFileRender();
 }

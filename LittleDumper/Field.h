@@ -7,6 +7,7 @@
 struct Pattern;
 class Dataset;
 struct HeaderFileManager;
+struct JsonFileManager;
 
 enum FieldStatus {
 	ANALYSIS_PENDING,
@@ -34,8 +35,11 @@ struct Field
 	void HandleFixups();
 	void PostFixups();
 	bool HandleInterpret(uintptr_t& outInterptr);
-	void Render();
+	void RenderStatic();
+	void RenderDynamic();
+	void RenderDynamicAssign(const std::string& jsonProviderParamName, const std::string& targetMemberName, bool bObfuscate = false);
 	HeaderFileManager* getHeaderFileRender();
+	JsonFileManager* getJsonFileRender();
 	bool NeedFindPattern();
 };
 

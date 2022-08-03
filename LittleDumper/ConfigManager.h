@@ -6,7 +6,7 @@
 struct ConfigManager
 {
 	std::string dumpFileName;
-	std::string namespaceName;
+	std::string StructName;
 	std::string targetsAbisPath;
 	Json::Value configJson;
 

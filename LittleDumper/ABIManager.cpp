@@ -6,6 +6,7 @@
 #include "HPPManager.h"
 #include <iostream>
 #include "AbiTarget.h"
+#include "StringHelper.h"
 
 ABIManager::ABIManager(LittleDumper* pDumper)
 	: pOwner(pDumper)
@@ -39,16 +40,42 @@ void ABIManager::Analyze()
 	}
 }
 
-void ABIManager::Render()
+void ABIManager::RenderHPP(bool bRenderDynamic)
 {
-	pOwner->getHeaderFileRender()->AppendPragmaOnce();
-	pOwner->getHeaderFileRender()->AppendGlobalInclude("cstdint");
+	auto* pHeaderManager = pOwner->getHeaderFileRender();
 
-	pOwner->getHeaderFileRender()->BeginNameSpace(pOwner->getConfigManager()->namespaceName);
+	pHeaderManager->AppendPragmaOnce();
+	pHeaderManager->AppendGlobalInclude("cstdint");
 
-	for (AbiTarget* pAbiTarget : abiTargets) pAbiTarget->Render();
+	pHeaderManager->BeginStruct(pOwner->getConfigManager()->StructName);
 
-	pOwner->getHeaderFileRender()->EndNameSpace(pOwner->getConfigManager()->namespaceName);
+	if (bRenderDynamic) pHeaderManager->AppendMacroIfDefined("STATIC_OFFS");
+
+	for (AbiTarget* pAbiTarget : abiTargets) pAbiTarget->RenderStatic();
+
+
+	if (bRenderDynamic) {
+		pHeaderManager->AppendMacroElse();
+
+		for (AbiTarget* pAbiTarget : abiTargets) pAbiTarget->RenderDynamic();
+
+		std::string JsonProviderParamName = "offs";
+
+		pHeaderManager->BeginFunction("void", "Set", {
+			"const Json::Value& " + JsonProviderParamName
+			});
+
+		for (AbiTarget* pAbiTarget : abiTargets) pAbiTarget->RenderDynamicAssigns(JsonProviderParamName, true);
+
+		pHeaderManager->EndFunction();
+
+		pHeaderManager->AppendMacroEndIf();
+	}
+
+
+	pHeaderManager->EndStruct(pOwner->getConfigManager()->StructName, {
+		StructDeclarationInfo("g"+StringHelper::Capitalize(pOwner->getConfigManager()->StructName), true, true)
+		});
 }
 
 HeaderFileManager* ABIManager::getHeaderFileRender()

@@ -8,6 +8,7 @@
 #include "HPPManager.h"
 #include "Target.h"
 #include "ICapstoneTool.h"
+#include "JsonFileManager.h"
 
 std::unordered_map<std::string, cs_arch> capstoneArchMap = {
 	{"arm32", CS_ARCH_ARM},
@@ -80,6 +81,8 @@ AbiTarget::AbiTarget(ABIManager* _pOwner, const Json::Value& abiTargetJsn)
 			}
 			else throw "Arch Not Exist or is Empty";
 		}
+
+		pJsonFileManager = new JsonFileManager("offsets_" + macro + ".json");
 	}
 	else throw "Targets Member not Found";
 }
@@ -92,6 +95,7 @@ AbiTarget::~AbiTarget()
 	}
 
 	if (pFilesEngine) delete pFilesEngine;
+	if (pJsonFileManager) delete pJsonFileManager;
 }
 
 FilesEngine* AbiTarget::getFilesEngine()
@@ -111,7 +115,7 @@ void AbiTarget::PostAnalysis()
 		pTarget->getDataset()->HandleAllFixups();
 }
 
-void AbiTarget::Render()
+void AbiTarget::RenderStatic()
 {
 	auto* pHeaderRender = getHeaderFileRender();
 
@@ -127,11 +131,55 @@ void AbiTarget::Render()
 	if (bValidMacro) pHeaderRender->AppendMacroIfDefined(macro, true);
 	pHeaderRender->AppendNextLine();
 
-	for (auto* pTarget : targets) pTarget->Render();
+	for (auto* pTarget : targets) pTarget->RenderStatic();
 
 	pHeaderRender->AppendNextLine();
 	if (bValidMacro) pHeaderRender->AppendMacroEndIf();
 
+}
+
+void AbiTarget::RenderDynamic()
+{
+	auto* pHeaderRender = getHeaderFileRender();
+
+	bool bValidMacro = !macro.empty();
+	bool bParentMultipleMacros = pOwner->getAbiTargets().size() > 1;
+
+	if (!bValidMacro && bParentMultipleMacros)
+	{
+		std::cout << "Warning: ABITarget with macro empty\n";
+		return;
+	}
+
+	if (bValidMacro) pHeaderRender->AppendMacroIfDefined(macro, true);
+	pHeaderRender->AppendNextLine();
+
+	for (auto* pTarget : targets) pTarget->RenderDynamic();
+
+	pHeaderRender->AppendNextLine();
+	if (bValidMacro) pHeaderRender->AppendMacroEndIf();
+}
+
+void AbiTarget::RenderDynamicAssigns(const std::string& jsonProviderParamName, bool bObfuscate)
+{
+	auto* pHeaderRender = getHeaderFileRender();
+
+	bool bValidMacro = !macro.empty();
+	bool bParentMultipleMacros = pOwner->getAbiTargets().size() > 1;
+
+	if (!bValidMacro && bParentMultipleMacros)
+	{
+		std::cout << "Warning: ABITarget with macro empty\n";
+		return;
+	}
+
+	if (bValidMacro) pHeaderRender->AppendMacroIfDefined(macro, true);
+	pHeaderRender->AppendNextLine();
+
+	for (auto* pTarget : targets) pTarget->RenderDynamicAssigns(jsonProviderParamName, bObfuscate);
+
+	pHeaderRender->AppendNextLine();
+	if (bValidMacro) pHeaderRender->AppendMacroEndIf();
 }
 
 HeaderFileManager* AbiTarget::getHeaderFileRender()
